@@ -1,0 +1,24 @@
+{
+  "launchType": "FARGATE",
+  "desiredCount": 1,
+  "loadBalancers": [
+    {
+      "containerName": "app",
+      "containerPort": 8080,
+      "targetGroupArn": "{{ tfstate `aws_lb_target_group.main.arn` }}"
+    }
+  ],
+  "networkConfiguration": {
+    "awsvpcConfiguration": {
+      "assignPublicIp": "ENABLED",
+      "securityGroups": [
+        "{{ tfstate `aws_security_group.ecs.id` }}"
+      ],
+      "subnets": [
+        "{{ tfstate `aws_subnet.public_1.id` }}",
+        "{{ tfstate `aws_subnet.public_2.id` }}"
+      ]
+    }
+  }
+}
+

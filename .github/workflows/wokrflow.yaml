@@ -1,0 +1,46 @@
+name: Deploy to ECS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      # OIDC認証（推奨）
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ap-northeast-1
+
+      - uses: aws-actions/amazon-ecr-login@v2
+        id: ecr
+      
+      - name: Build and push
+        env:
+          IMAGE: ${{ steps.ecr.outputs.registry }}/ecspresso-ecr:${{ github.sha }}
+        run: |
+          docker build -t $IMAGE ./app
+          docker tag $IMAGE ${IMAGE%:*}:latest
+          docker push $IMAGE
+          docker push ${IMAGE%:*}:latest
+
+      - name: Install ecspresso
+        run: |
+          ECSPRESSO_VERSION="v2.7.0"
+          curl -sL https://github.com/kayac/ecspresso/releases/download/${ECSPRESSO_VERSION}/ecspresso_${ECSPRESSO_VERSION}_linux_amd64.tar.gz | tar xz
+          sudo mv ecspresso /usr/local/bin/
+          ecspresso version
+      
+      - name: Deploy with ecspresso
+        env:
+          IMAGE_URI: ${{ steps.ecr.outputs.registry }}/ecspresso-ecr:${{ github.sha }}
+        run: |
+          ecspresso deploy --config deploy/ecspresso.yml

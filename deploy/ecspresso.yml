@@ -1,0 +1,11 @@
+region: ap-northeast-1
+cluster: ecspresso-cluster
+service: ecspresso-service
+task_definition: ecs-task-def.json
+service_definition: ecs-service-def.json
+
+plugins:
+  - name: tfstate
+    config:
+      url: s3://ecspresso-terraform-state-202512292024/ecspresso-infra/terraform.tfstate
+
