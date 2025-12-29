@@ -32,12 +32,10 @@ jobs:
           docker push $IMAGE
           docker push ${IMAGE%:*}:latest
 
-      - name: Install ecspresso
-        run: |
-          ECSPRESSO_VERSION="v2.7.0"
-          curl -sL https://github.com/kayac/ecspresso/releases/download/${ECSPRESSO_VERSION}/ecspresso_${ECSPRESSO_VERSION}_linux_amd64.tar.gz | tar xz
-          sudo mv ecspresso /usr/local/bin/
-          ecspresso version
+      - name: Setup ecspresso
+        uses: kayac/ecspresso@v2
+        with:
+          version: v2.7.0
       
       - name: Deploy with ecspresso
         env:
